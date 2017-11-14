@@ -122,7 +122,7 @@ void Prediction::teaching() {
             context = Y;
             MatrixClass X_ = Y * W_;
             MatrixClass deltaX = X_ - X;
-            error += errorDegree(deltaX);
+           // error += errorDegree(deltaX);
         }
         iteration++;
     } while (error > e && N > iteration);
@@ -147,61 +147,72 @@ void Prediction::generateWeightMatrix() {
             }
         }
     }
-    W_ = MatrixClass(m + 1, n);
+    W_ = MatrixClass(m + 1, 1);
     for (unsigned int i = 0; i < m; i++) {
-        for (unsigned int j = 0; j < n; j++) {
-            if (i == 0) {
-                W_(i, j) = 1;
-            } else {
-                W_(i, j) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.1;
-            }
+        if (i == 0) {
+            W_(i, 0) = 1;
+        } else {
+            W_(i, 0) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.1;
         }
     }
 }
 
-double Prediction::errorDegree(MatrixClass deltaX) {
-    double e = 0;
-    for (unsigned int i = 0; i < L; i++) {
-        e += (deltaX(0, i) * deltaX(0, i));
-    }
-    return e;
+double Prediction::errorDegree(const double& delta) {
+//    double e = 0;
+//    for (unsigned int i = 0; i < L; i++) {
+//        e += (deltaX(0, i) * deltaX(0, i));
+//    }
+//    return e;
+    return 1./2 * (delta * delta);
 }
-
 void Prediction::test() {
     //predictionBuilder();
-    n = 3; m = 4; e = 0.01; alpha = 0.001; p = 4; x = 3; N = 10; r = 5;
+    n = 5; m = 3; e = 0.01; alpha = 0.001; p = 5; x = 3; N = 10000; r = 5;
     loadSeaquenceFromFile();
     fillTemplates();
     generateWeightMatrix();
     double error;
     unsigned int iteration = 0;
     context = MatrixClass(1, m);
+    MatrixClass correctionW;
+    double correctionW_ = 0;
     do {
         error = 0;
-    //LearningTemplate learningTemplate = templates[0];
-    for (LearningTemplate learningTemplate : templates) {
-        MatrixClass X = (learningTemplate.getX() ^ context).activationFunction(T);
-        MatrixClass Y = (X * W).activationFunction(T);
-        context = Y;
-        Y.insert(1);
-        MatrixClass X_ = (Y * W_).activationFunction(T);
-//        std::cout << "U: " << std::endl;
-//        X_.show();
-        MatrixClass deltaX = X_ - X;
+        for (LearningTemplate learningTemplate : templates) {
+            MatrixClass inputVector = learningTemplate.getX() ^ context;
+            MatrixClass hiddenLayerVector = (inputVector * W + correctionW).activationFunction(T);
+            context = hiddenLayerVector;
+            hiddenLayerVector.insert(T);
+            MatrixClass outputVector = (hiddenLayerVector * W_ + correctionW_).activationFunction(T);
+            double seaquenceMember = outputVector(0,0);
 
-        W =  W - (X.transpose() * alpha * deltaX * W_.transpose());
-        W_ = W_ - (Y.transpose() * alpha * deltaX);
+            ///обучение выходного слоя
+            double delta = learningTemplate.getCorrectMember() - seaquenceMember;
+            delta = delta * f_(seaquenceMember);
+            MatrixClass deltaW_ = hiddenLayerVector  * alpha * delta;
+            correctionW_ = alpha * delta;
+            //W_ = W_ + deltaW_;
+            ///входного слоя
+            MatrixClass deltaJ = inputVector * context.f_(T);
+            MatrixClass deltaW = deltaJ * inputVector * alpha;
+            correctionW = deltaJ * alpha;
+            //W = W + deltaW;
         }
         for (LearningTemplate learningTemplate : templates) {
-            MatrixClass X = (learningTemplate.getX() ^ context).activationFunction(T);
-            MatrixClass Y = (X * W).activationFunction(T);
-            context = Y;
-            Y.insert(1);
-            MatrixClass X_ = (Y * W_).activationFunction(T);
-            MatrixClass deltaX = X_ - X;
-            error += errorDegree(deltaX);
+            MatrixClass inputVector = learningTemplate.getX() ^ context;
+            MatrixClass hiddenLayerVector = (inputVector * W).activationFunction(T);
+            context = hiddenLayerVector;
+            hiddenLayerVector.insert(T);
+            double seaquenceMember = (hiddenLayerVector * W_)(0,0);
+            double delta = seaquenceMember - learningTemplate.getCorrectMember();
+            error += errorDegree(delta);
+            std::cout << "member: " << seaquenceMember << " delta: "<< delta << std::endl;
         }
         iteration++;
         std::cout << "Iteration: " << iteration << " error: " << error << std::endl;
     } while (error > e && N > iteration);
+}
+
+double Prediction::f_(const double &value) {
+    return 1 / (1 + (value - T) * (value - T));
 }

@@ -37,7 +37,8 @@ class Prediction {
     void initVariables();
     void loadSeaquenceFromFile();
     void fillTemplates();
-    double errorDegree(MatrixClass deltaX);
+    double errorDegree(const double& delta);
+    double f_(const double& value);
 public:
     explicit Prediction(const char *path);
     std::vector<LearningTemplate> getTemplates() {return this->templates; };

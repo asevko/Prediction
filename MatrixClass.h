@@ -76,6 +76,14 @@ public:
         return result;
     }
 
+    MatrixClass& operator+(const double& value) {
+        auto n = static_cast<unsigned int>(this->matrix.size());
+        for (unsigned int i = 0; i < n; i ++) {
+            this->matrix[i] += value;
+        }
+        return *this;
+    }
+
     MatrixClass& operator=(const MatrixClass& other) {
         if (this != &other) {
             std::vector<double>().swap(this->matrix);
@@ -121,6 +129,7 @@ public:
     void show();
     MatrixClass transpose();
     MatrixClass& activationFunction(const double& T);
+    MatrixClass& f_(const double& T);
     void insert(const double& value);
     void resize(unsigned int sizeX, unsigned int sizeY);
     virtual int getX() const { return this->sizeX; };

@@ -48,3 +48,10 @@ void MatrixClass::insert(const double& value) {
     this->matrix.resize(this->sizeX * this->sizeY);
     this->matrix.insert(this->matrix.begin(), value);
 }
+
+MatrixClass& MatrixClass::f_(const double& T) {
+    for (double &i : this->matrix) {
+        i =  1 / (1 + (i - T) * (i - T));
+    }
+    return *this;
+}
