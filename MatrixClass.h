@@ -106,10 +106,23 @@ public:
         return result;
     }
 
+    friend MatrixClass operator ^(const MatrixClass &l, const MatrixClass &r) {
+        if (l.sizeX != r.sizeX) {
+            throw std::logic_error("Different matrix sizes");
+        }
+        MatrixClass result = l;
+        result.resize(1, l.sizeY + r.sizeY);
+        for (unsigned int i = l.sizeY, j = 0; j < r.sizeY; i++, j++) {
+            result.matrix[i] = r.matrix[j];
+        }
+        return result;
+    }
 
     void show();
     MatrixClass transpose();
-    MatrixClass& activationFunction();
+    MatrixClass& activationFunction(const double& T);
+    void insert(const double& value);
+    void resize(unsigned int sizeX, unsigned int sizeY);
     virtual int getX() const { return this->sizeX; };
     virtual int getY() const { return this->sizeY; };
 };

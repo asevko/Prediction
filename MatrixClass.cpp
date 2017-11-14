@@ -25,9 +25,26 @@ MatrixClass MatrixClass::transpose() {
     return result;
 }
 
-MatrixClass& MatrixClass::activationFunction() {
-    for (double value : matrix) {
-        value = atan(value);
+MatrixClass& MatrixClass::activationFunction(const double& T) {
+    for (unsigned int i = 0; i < this->sizeX * this->sizeY; i ++) {
+        this->matrix[i] = atan(this->matrix[i] - T);
     }
     return *this;
+}
+
+void MatrixClass::resize(unsigned int sizeX, unsigned int sizeY) {
+    if (sizeX < 1 || sizeY < 1 ||
+            sizeX < this->sizeX ||
+            sizeY < this->sizeY) {
+        throw std::logic_error("Negative matrix sizes");
+    }
+    this->sizeX = sizeX;
+    this->sizeY = sizeY;
+    this->matrix.resize(sizeX * sizeY);
+}
+
+void MatrixClass::insert(const double& value) {
+    this->sizeY += 1;
+    this->matrix.resize(this->sizeX * this->sizeY);
+    this->matrix.insert(this->matrix.begin(), value);
 }

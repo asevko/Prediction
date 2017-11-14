@@ -9,11 +9,15 @@
 
 
 class Prediction {
+    const double T = 1; ///пороговое значение
+
     double e; ///допустимая ошибка 0 < e <= 0.1
     double alpha; ///шаг обучения 0 < alpha <= 0.1; alpha <= e
     unsigned int N; ///количество шагов обучения N >= 1, recommendation N = 1_000_000
     unsigned int p; ///количество рядов в матрице обучения p >= 1
-    unsigned int L; ///количество строк в матрице обучения L >= 1; L = q - p
+    unsigned int L; ///(количество строк в матрице обучения L >= 1; L = q - p)
+                    ///upd L - длина обучающей выборки
+    unsigned int x; ///количество строк в матрице обучения x >= 1
     unsigned int n; ///количество нейронов на первом слое
     unsigned int m; ///количество нейронов на втором слое
     unsigned int q; ///размерность последовательности X; q >= 0
@@ -37,6 +41,7 @@ class Prediction {
 public:
     explicit Prediction(const char *path);
     std::vector<LearningTemplate> getTemplates() {return this->templates; };
+    void test();
 };
 
 

@@ -1,9 +1,9 @@
 #include "LearningTemplate.h"
 
 void LearningTemplate::matrixFromSeaquence() {
-    std::vector<double> numbers(seaquence);
-    numbers.push_back(0);
-    this->X = MatrixClass(numbers);///was seaquence
+//    std::vector<double> numbers(seaquence);
+//    numbers.push_back(0);
+    this->X = MatrixClass(seaquence);///was seaquence
 }
 
 void LearningTemplate::setContextNeuron(double neuron) {
