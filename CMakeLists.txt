@@ -7,4 +7,3 @@ set(SOURCE_FILES main.cpp MatrixClass.cpp MatrixClass.h Prediction.cpp Predictio
 add_executable(Prediction ${SOURCE_FILES})
 
 set(CMAKE_CXX_FLAGS_RELEASE  "-O3")
-SET(CMAKE_C_FLAGS_DEBUG "-D_DEBUG")

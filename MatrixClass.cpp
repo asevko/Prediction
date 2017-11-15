@@ -55,3 +55,11 @@ MatrixClass& MatrixClass::f_(const double& T) {
     }
     return *this;
 }
+
+double MatrixClass::sum(){
+    double sum = 0;
+    for (unsigned int i = 0; i < this->matrix.size(); i++) {
+        sum += matrix[i];
+    }
+    return sum;
+}
