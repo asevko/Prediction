@@ -12,11 +12,9 @@ class LearningTemplate {
     MatrixClass X;
 public:
     void matrixFromSeaquence();
-    void setContextNeuron(double neuron);
     void addNumberToSeaquence(double number);
     void setCorrectMember(double correctMember);
     inline MatrixClass getX() { return this->X; };
-    inline double getContextNeuron() { return X(0, static_cast<unsigned int>(seaquence.size())); };
     inline double getCorrectMember() { return this->correctMember; };
 };
 

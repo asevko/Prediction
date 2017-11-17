@@ -2,17 +2,19 @@
 
 Prediction::Prediction(const char *path) {
     this->path = path;
-    //predictionBuilder();
-    //teaching();
+
+    n = 5; m = 5; e = 0.00001; alpha = 0.01; N = 1000000; r = 5;
+    predictionBuilder();
+    teaching();
 }
 
 void Prediction::initVariables() {
-    std::cout << "Enter number of neuron for first layer (n):" << std::endl;
+    std::cout << "Enter number receptors (n):" << std::endl;
     std::cin >> n;
     if (n < 1) {
         throw std::logic_error(WRONG_INPUT);
     }
-    std::cout << "Enter number of neuron for second layer (m):" << std::endl;
+    std::cout << "Enter number of neuron for hidden layer (m):" << std::endl;
     std::cin >> m;
     if (m < 1) {
         throw std::logic_error(WRONG_INPUT);
@@ -27,27 +29,12 @@ void Prediction::initVariables() {
     if (alpha < 0 || alpha > 0.1 || alpha > e) {
         throw std::logic_error(WRONG_INPUT);
     }
-    std::cout << "Enter number of cols in learning matrix (p):" << std::endl;
-    std::cin >> p;
-    if (p < 1) {
-        throw std::logic_error(WRONG_INPUT);
-    }
-//    std::cout << "Enter number of rows in learning matrix (L):" << std::endl;
-//    std::cin >> L;
-//    if (L < 1) {
-//        throw std::logic_error(WRONG_INPUT);
-//    }
-    std::cout << "Enter number of rows in learning matrix (x):" << std::endl;
-    std::cin >> x;
-    if (x < 1) {
-        throw std::logic_error(WRONG_INPUT);
-    }
     std::cout << "Enter number of learning steps (N):" << std::endl;
     std::cin >> N;
     if (N < 1) {
         throw std::logic_error(WRONG_INPUT);
     }
-    std::cout << "Enter number of numbers to predict (r):" << std::endl;
+    std::cout << "Enter number of numbers to prediction (r):" << std::endl;
     std::cin >> r;
     if (r < 1) {
         throw std::logic_error(WRONG_INPUT);
@@ -65,71 +52,23 @@ void Prediction::loadSeaquenceFromFile() {
         }
         inputFile.close();
     }
-    k = static_cast<unsigned int>(seaquence.size());
-    q = k - 1;
-    if (k < p + L) {
-        throw std::logic_error(WRONG_INPUT);
-    }
+    L = static_cast<unsigned int>(seaquence.size() - n - 1) ;
 }
 
 void Prediction::fillTemplates() {
-    L = q - p;
-//    for (int index = 0; index < L; index++){ ///was k-p
-//        LearningTemplate aTemplate;
-//        for (int shift = 0; shift < p; shift++) {
-//            aTemplate.addNumberToSeaquence(seaquence[index + shift]);
-//        }
-//        aTemplate.matrixFromSeaquence();
-//        aTemplate.setCorrectMember(seaquence[index + p ]);
-//        templates.push_back(aTemplate);
-//    }
-    for (int index = 0; index < x; index++){ ///was k-p
+    for (int index = 0; index < L; index++){
         LearningTemplate aTemplate;
-        aTemplate.addNumberToSeaquence(1);
-        for (int shift = 0; shift < p; shift++) {
+        aTemplate.addNumberToSeaquence(T);
+        for (int shift = 0; shift < n; shift++) {
             aTemplate.addNumberToSeaquence(seaquence[index + shift]);
         }
         aTemplate.matrixFromSeaquence();
-        aTemplate.setCorrectMember(seaquence[index + p]);
+        aTemplate.setCorrectMember(seaquence[index + n]);
         templates.push_back(aTemplate);
     }
-    //L = static_cast<unsigned int>(templates.size()) - p;
-}
-
-void Prediction::teaching() {
-    double error;
-    unsigned int iteration = 0;
-    context = MatrixClass(m, 1);
-    generateWeightMatrix();
-    do {
-        error = 0;
-        for (LearningTemplate aTemplate : templates) {
-            MatrixClass X = aTemplate.getX() ^ context;
-            MatrixClass Y = (X * W).activationFunction(T);
-            context = Y;
-            Y.insert(1); ///добавляем контект для активации нейрона
-            MatrixClass X_ = (Y * W_).activationFunction(T);
-            double correctMember = aTemplate.getCorrectMember();
-            double delta = X_(0,0) - correctMember;
-            MatrixClass deltaX = X_ - X;/// not like this
-
-            W =  W - (X.transpose() * alpha * deltaX * W_.transpose());
-            W_ = W_ - (Y.transpose() * alpha * deltaX);
-        }
-        for (LearningTemplate aTemplate : templates) {
-            MatrixClass X = aTemplate.getX();
-            MatrixClass Y = X * W + context * W_;
-            context = Y;
-            MatrixClass X_ = Y * W_;
-            MatrixClass deltaX = X_ - X;
-           // error += errorDegree(deltaX);
-        }
-        iteration++;
-    } while (error > e && N > iteration);
 }
 
 void Prediction::predictionBuilder() {
-    initVariables();
     loadSeaquenceFromFile();
     fillTemplates();
     generateWeightMatrix();
@@ -137,90 +76,101 @@ void Prediction::predictionBuilder() {
 
 void Prediction::generateWeightMatrix() {
     srand(static_cast<unsigned int>(time(nullptr)));
-    W = MatrixClass(p + m + 1, m);
-    for (unsigned int i = 0; i < p + m + 1; i++) {
+    W = MatrixClass(n + m + 1, m);
+    for (unsigned int i = 0; i < n + m + 1; i++) {
         for (unsigned int j = 0; j < m; j++) {
-            if (i == 0) {
-                W(i, j) = 1;
-            } else {
-                W(i, j) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.1;
-            }
+            W(i, j) =(((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.01;
         }
     }
-    W_ = MatrixClass(m + 1, 1);
-    for (unsigned int i = 0; i < m; i++) {
-        if (i == 0) {
-            W_(i, 0) = 1;
-        } else {
-            W_(i, 0) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.1;
-        }
-        //W_(i, 0) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.1;
+    V = MatrixClass(m + 1, 1);
+    for (unsigned int i = 0; i < m + 1; i++) {
+        V(i, 0) = (((double) rand() / (RAND_MAX + 1.) * 2 - 1)) * 0.01;
     }
 }
 
 double Prediction::errorDegree(const double& delta) {
-//    double e = 0;
-//    for (unsigned int i = 0; i < L; i++) {
-//        e += (deltaX(0, i) * deltaX(0, i));
-//    }
-//    return e;
     return 1./2 * (delta * delta);
 }
-void Prediction::test() {
-    //predictionBuilder();
-    n = 5; m = 3; e = 0.01; alpha = 0.001; p = 5; x = 3; N = 10000; r = 5;
-
-    loadSeaquenceFromFile();
-    fillTemplates();
-    generateWeightMatrix();
+void Prediction::teaching() {
 
     double error;
     unsigned int iteration = 0;
-    context = MatrixClass(1, m);
     do {
         error = 0;
-        MatrixClass deltaW_(1,1);
-        MatrixClass deltaW(1,1);
+        context = MatrixClass(1, m);
         for (LearningTemplate learningTemplate : templates) {
-            MatrixClass IV = (learningTemplate.getX() ^ context);
-            MatrixClass preHV = IV * W;
-            MatrixClass HV = preHV.activationFunction(T + deltaW(0, 0));
-            context = HV; HV.insert(T);
-            MatrixClass preOV = (HV * W_);
-            MatrixClass OV = preOV.activationFunction(T + deltaW_(0, 0));
+            MatrixClass X = learningTemplate.getX() || context;
+            MatrixClass inHidden = X * W;
+            inHidden.activationFunction();
+            context = inHidden;
+            inHidden.insert(T);
+            MatrixClass inY = inHidden * V;
+            double answer = atan(inY(0,0));
+            double delta = learningTemplate.getCorrectMember() - answer;
+            double sigmaY = delta * f_(inY(0, 0));
+            double alpha_sigmaY = alpha * sigmaY;
 
-            double output = OV(0,0);
-            double diff = output - learningTemplate.getCorrectMember();
-            double delta = diff * preOV.f_(T + deltaW_(0,0))(0,0);
-            double correctionW_ = alpha * delta;
-            deltaW_ = HV * correctionW_;
+            for (unsigned int j = 0; j < m; j ++) {
+                double sigma_Hidden_In  =  V(j, 0) * sigmaY;
+                double sigma_Hidden = sigma_Hidden_In * f_(inHidden(0, j));
+                for (unsigned int i = 0; i < n + m + 1; i ++) {
+                    W(i, j) += (sigma_Hidden * alpha * X(0, i));
+                }
+            }
 
-            W_ = W_ + deltaW_.transpose();
-
-            MatrixClass deltaHidden = (W * delta).f_(T);
-            MatrixClass correctionW = deltaHidden * alpha;
-            deltaW = correctionW | IV.transpose();
-
-            W = W + deltaW;
+            for (unsigned int i = 0; i < m + 1; i++) {
+                V(i, 0) += alpha_sigmaY * inHidden(0,i);
+            }
         }
         context = MatrixClass(1, m);
         for (LearningTemplate learningTemplate : templates) {
-            MatrixClass IV = (learningTemplate.getX() ^ context);
-            MatrixClass preHV = IV * W;
-            MatrixClass HV = preHV.activationFunction(T + deltaW(0, 0));
-            context = HV; HV.insert(T);
-            MatrixClass preOV = (HV * W_);
-            MatrixClass OV = preOV.activationFunction(T + deltaW_(0, 0));
-            double output = OV(0,0);
-            double diff = output - learningTemplate.getCorrectMember();
-            error +=errorDegree(diff);
-            std::cout << "element: " << output << std::endl;
+            MatrixClass X = learningTemplate.getX() || context;
+            MatrixClass inHidden = X * W;
+            inHidden.activationFunction();
+            context = inHidden;
+            inHidden.insert(T);
+            MatrixClass inY = inHidden * V;
+            double answer = atan(inY(0,0));
+            double delta = learningTemplate.getCorrectMember() - answer;
+            error += errorDegree(delta);
+            //std::cout << "Element: " << inY(0,0) << " delta: " << delta << std::endl;
         }
         iteration++;
         std::cout << "Iteration: " << iteration << " error: " << error << std::endl;
     } while (error > e && N > iteration);
+    prediction();
+}
+
+void Prediction::prediction() {
+    for (LearningTemplate learningTemplate : templates) {
+        MatrixClass X = learningTemplate.getX() || context;
+        MatrixClass inHidden = X * W;
+        inHidden.activationFunction();
+        context = inHidden;
+        inHidden.insert(T);
+        MatrixClass inY = inHidden * V;
+    }
+    for (unsigned int i = 0; i < r; i++ ){
+        LearningTemplate aTemplate;
+        aTemplate.addNumberToSeaquence(T);
+        for (unsigned int j = n ; j > 0; j--){
+            aTemplate.addNumberToSeaquence(seaquence[seaquence.size() - n + r - 1]);
+        }
+        aTemplate.matrixFromSeaquence();
+        aTemplate.setCorrectMember(seaquence[seaquence.size() + r - 1]);
+        templates.push_back(aTemplate);
+        MatrixClass X = templates[templates.size() - 1].getX() || context;
+        MatrixClass inHidden = X * W;
+        inHidden.activationFunction();
+        context = inHidden;
+        inHidden.insert(T);
+        MatrixClass inY = inHidden * V;
+        double answer = atan(inY(0,0));
+        std::cout << "Predicted: " << answer << std::endl;
+        seaquence.push_back(answer);
+    }
 }
 
 double Prediction::f_(const double &value) {
-    return 1 / (1 + (value - T) * (value - T));
+    return 1 / (1 + (value) * (value));
 }
