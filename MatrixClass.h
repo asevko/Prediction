@@ -26,6 +26,16 @@ public:
         std::copy(vector.begin(), vector.end(), matrix.begin());
     }
 
+    MatrixClass (const MatrixClass& other){
+        std::vector<double>().swap(this->matrix);
+        if (this->matrix.size() != other.matrix.size()) {
+            this->matrix.resize(other.sizeX * other.sizeY);
+        }
+        this->sizeX = other.sizeX;
+        this->sizeY = other.sizeY;
+        std::copy(other.matrix.begin(), other.matrix.end(), this->matrix.begin());
+    }
+
     ~MatrixClass() {
         std::vector<double>().swap(matrix);
     }
@@ -114,7 +124,7 @@ public:
         return result;
     }
 
-    friend MatrixClass operator ^(const MatrixClass &l, const MatrixClass &r) {
+    friend MatrixClass operator ||(const MatrixClass &l, const MatrixClass &r) {
         if (l.sizeX != r.sizeX) {
             throw std::logic_error("Different matrix sizes");
         }
@@ -126,10 +136,10 @@ public:
         return result;
     }
 
+
     void show();
     MatrixClass transpose();
-    MatrixClass& activationFunction(const double& T);
-    MatrixClass& f_(const double& T);
+    MatrixClass& activationFunction();
     void insert(const double& value);
     void resize(unsigned int sizeX, unsigned int sizeY);
     virtual int getX() const { return this->sizeX; };

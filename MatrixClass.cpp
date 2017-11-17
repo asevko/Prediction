@@ -25,9 +25,9 @@ MatrixClass MatrixClass::transpose() {
     return result;
 }
 
-MatrixClass& MatrixClass::activationFunction(const double& T) {
+MatrixClass& MatrixClass::activationFunction() {
     for (unsigned int i = 0; i < this->sizeX * this->sizeY; i ++) {
-        this->matrix[i] = atan(this->matrix[i] - T);
+        this->matrix[i] = atan(this->matrix[i]);
     }
     return *this;
 }
@@ -47,11 +47,4 @@ void MatrixClass::insert(const double& value) {
     this->sizeY += 1;
     this->matrix.resize(this->sizeX * this->sizeY);
     this->matrix.insert(this->matrix.begin(), value);
-}
-
-MatrixClass& MatrixClass::f_(const double& T) {
-    for (double &i : this->matrix) {
-        i =  1 / (1 + (i - T) * (i - T));
-    }
-    return *this;
 }
